@@ -5,70 +5,64 @@
   <title>Audio Landing Page</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-      font-family: Arial, Helvetica, sans-serif;
-      color: #fff;
-      text-align: center;
+    body{
+      margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
+      background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+      font-family:Arial,Helvetica,sans-serif; color:#fff; text-align:center;
     }
-    .box {
-      background: rgba(0, 0, 0, 0.35);
-      padding: 32px 24px;
-      border-radius: 16px;
-      max-width: 420px;
-      width: 90%;
-      box-shadow: 0 20px 50px rgba(0,0,0,.4);
+    .box{
+      background:rgba(0,0,0,.35); padding:28px 22px; border-radius:16px;
+      max-width:520px; width:90%; box-shadow:0 20px 50px rgba(0,0,0,.4);
     }
-    h1 { margin-top: 0; font-size: 24px; }
-    p { opacity: 0.85; line-height: 1.5; }
-    button {
-      margin-top: 16px;
-      padding: 12px 20px;
-      font-size: 16px;
-      border: none;
-      border-radius: 12px;
-      background: #00c6ff;
-      color: #000;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    audio { width: 100%; margin-top: 20px; }
-    .note { font-size: 13px; opacity: 0.7; margin-top: 10px; }
+    h1{ margin:0 0 10px; font-size:22px; }
+    p{ margin:0; opacity:.85; line-height:1.5; }
+    /* Ẩn hẳn audio */
+    audio{ display:none; }
   </style>
 </head>
 <body>
   <div class="box">
-    <h1>Chào mừng bạn</h1>
-    <p>Âm thanh sẽ tự động phát khi mở trang.<br>Nếu không nghe thấy, hãy bấm nút bên dưới.</p>
-    <button id="playBtn">▶ BẤM ĐỂ PHÁT ÂM THANH</button>
-    <audio id="audio" preload="auto" playsinline>
-      <source src="291012283@20181024WEB.mp3" type="audio/mpeg">
-    </audio>
-    <div class="note">(Một số trình duyệt chặn tự phát âm thanh)</div>
+    <h1>Đang phát âm thanh…</h1>
+    <p>Nếu bạn không nghe thấy, hãy chạm/click một lần vào màn hình để trình duyệt cho phép phát.</p>
   </div>
+
+  <audio id="audio" preload="auto" playsinline>
+    <source src="291012283@20181024WEB.mp3" type="audio/mpeg">
+  </audio>
+
   <script>
     const audio = document.getElementById("audio");
-    const playBtn = document.getElementById("playBtn");
 
-    async function autoPlay() {
+    async function startMutedThenTryUnmute() {
       try {
+        // Autoplay "dễ qua" hơn khi muted
         audio.muted = true;
         await audio.play();
+
+        // Nếu trình duyệt cho phép, thử bật tiếng luôn
         audio.muted = false;
-      } catch (e) {}
+      } catch (e) {
+        // bị chặn => chờ tương tác người dùng
+      }
     }
 
-    playBtn.addEventListener("click", async () => {
-      audio.muted = false;
-      await audio.play();
-    });
+    async function startWithSoundOnFirstInteraction() {
+      try {
+        audio.muted = false;
+        await audio.play();
+      } catch (e) {}
+      // Gỡ listener sau lần đầu
+      window.removeEventListener("pointerdown", startWithSoundOnFirstInteraction, true);
+      window.removeEventListener("keydown", startWithSoundOnFirstInteraction, true);
+      window.removeEventListener("touchstart", startWithSoundOnFirstInteraction, true);
+    }
 
-    window.addEventListener("load", autoPlay);
+    window.addEventListener("load", startMutedThenTryUnmute);
+
+    // Không hiện nút: chỉ cần user chạm/click bất kỳ đâu là phát có tiếng
+    window.addEventListener("pointerdown", startWithSoundOnFirstInteraction, true);
+    window.addEventListener("touchstart", startWithSoundOnFirstInteraction, true);
+    window.addEventListener("keydown", startWithSoundOnFirstInteraction, true);
   </script>
 </body>
 </html>
